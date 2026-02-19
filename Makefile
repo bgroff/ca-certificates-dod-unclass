@@ -15,4 +15,5 @@ keys:
 clean:
 	rm -f wolfi-base.tar wolfi-ca-certificates-dod-unclass.tar
 	rm -f melange.rsa melange.rsa.pub
+	rm -f sbom-*.spdx.json
 	rm -rf packages/
