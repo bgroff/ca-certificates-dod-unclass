@@ -1,0 +1,61 @@
+package:
+  name: ca-certificates-dod-unclass
+  version: 5.14.0
+  epoch: 2
+  description: DoD Unclassified CA Certificates for the system trust store
+  copyright:
+    - license: LicenseRef-Public-Domain
+      paths:
+        - "*"
+  dependencies:
+    runtime:
+      - ca-certificates-bundle
+    replaces:
+      - ca-certificates-bundle
+
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - busybox
+      - openssl
+
+pipeline:
+  - runs: |
+      set -euo pipefail
+
+      SRC="certs/Certificates_PKCS7_v5_14_DoD/Certificates_PKCS7_v5_14_DoD.pem.p7b"
+      CERT_DIR="${{targets.destdir}}/usr/share/ca-certificates/dod"
+      BUNDLE_DIR="${{targets.destdir}}/etc/ssl/certs"
+      TMPDIR="/tmp/dod-certs"
+
+      mkdir -p "$CERT_DIR" "$BUNDLE_DIR" "$TMPDIR"
+
+      # Extract PEM certs from PKCS7 and split into individual files named by CN
+      openssl pkcs7 -in "$SRC" -print_certs 2>/dev/null | awk -v tmpdir="$TMPDIR" '
+        /subject=.*CN=/ {
+          cn = $0
+          sub(/.*CN=/, "", cn)
+          sub(/,.*/, "", cn)
+          gsub(/ /, "_", cn)
+          gsub(/[^a-zA-Z0-9_-]/, "", cn)
+          file = tmpdir "/" cn ".crt"
+        }
+        /-----BEGIN CERTIFICATE-----/,/-----END CERTIFICATE-----/ {
+          if (file) print > file
+        }
+      '
+
+      # Install individual cert files
+      cp "$TMPDIR"/*.crt "$CERT_DIR/"
+
+      # Create DoD-only PEM bundle
+      cat "$CERT_DIR"/*.crt > "$BUNDLE_DIR/dod-ca-certificates.crt"
+
+      # Merge DoD certs into the system trust store so TLS clients work without scriptlets
+      cp /etc/ssl/certs/ca-certificates.crt "$BUNDLE_DIR/ca-certificates.crt"
+      cat "$CERT_DIR"/*.crt >> "$BUNDLE_DIR/ca-certificates.crt"
+
