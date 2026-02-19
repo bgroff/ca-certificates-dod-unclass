@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOD_IMAGE="wolfi-base:latest-amd64"
-NODOD_IMAGE="wolfi-base-nodod:latest-amd64"
+DOD_IMAGE="wolfi-ca-certificates-dod-unclass:latest-amd64"
+NODOD_IMAGE="wolfi-base:latest-amd64"
 DOD_TEST_URL="https://www.defensetravel.osd.mil/"
 PASS=0
 FAIL=0

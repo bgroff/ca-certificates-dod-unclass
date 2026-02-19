@@ -13,5 +13,6 @@ keys:
 	fi
 
 clean:
-	rm -f wolfi-base.tar wolfi-base-nodod.tar
+	rm -f wolfi-base.tar wolfi-ca-certificates-dod-unclass.tar
+	rm -f melange.rsa melange.rsa.pub
 	rm -rf packages/
